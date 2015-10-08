@@ -7,7 +7,8 @@
 var generateTrackerModels = function(header) {
     var models = [];
     header.elements.forEach(function modelTracker(str, ndx, arr) {
-        str = str.toLowerCase().trim();
+        // \W is the negation of shorthand \w for [A-Za-z0-9_]
+        str = str.toLowerCase().replace(/[\W]+/g,'_');
         if (!str || str === 'ursi') {
             return;
         }
@@ -45,11 +46,15 @@ var appendResponseOptions = function(responses, trackerModels) {
 var buildEvents = function(responses, trackerModels) {
     return responses.elements.map(function(responseSet) {
         var takeRight = require('lodash.takeright');
+        var ursi = responseSet[0];
         var trackerResponses = takeRight(responseSet, responseSet.length - 1); //remove ursi
+        if (!ursi) {
+            throw new ReferenceError('ursi missing');
+        }
         return {
+            ursi: ursi,
             responses: trackerResponses.map(function getTrackerResponse(respValue, ndx) {
                 return {
-                    ursi: responseSet[0],
                     tracker: trackerModels[ndx],
                     value: respValue
                 }

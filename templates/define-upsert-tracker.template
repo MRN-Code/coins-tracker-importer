@@ -1,4 +1,4 @@
-DROP FUNCTION upsert_tracker(integer,character varying,boolean);
+--DROP FUNCTION upsert_tracker(integer,character varying,boolean);
 CREATE OR REPLACE FUNCTION upsert_tracker(p_study_id integer, p_label varchar, p_permit_custom_text_response boolean) RETURNS integer AS $$
     DECLARE result_id integer;
     BEGIN
@@ -24,4 +24,60 @@ CREATE OR REPLACE FUNCTION upsert_tracker(p_study_id integer, p_label varchar, p
         SELECT id INTO result_id FROM update_tracker UNION ALL SELECT id FROM insert_tracker;
         RETURN result_id;
     END;
+$$ LANGUAGE plpgsql;
+
+-- integer, timestamp with time zone, character varying, character varying
+--DROP FUNCTION upsert_tracker_event(character varying, timestamp with time zone, character varying);
+CREATE OR REPLACE FUNCTION upsert_tracker_event(
+    p_ursi character varying,
+    p_timestamp timestamp with time zone,
+    p_log character varying,
+    p_tracking_diff character varying
+)
+    RETURNS integer AS $$
+
+    DECLARE z_subject_type_detail_id integer;
+    DECLARE result_id integer;
+
+    BEGIN
+        z_subject_type_detail_id = (
+            SELECT DISTINCT subject_type_detail_id FROM mrs_subject_type_details
+                WHERE
+                    mrs_subject_type_details.ursi = p_ursi AND
+                    mrs_subject_type_details.subject_type_id = (
+			            SELECT DISTINCT subject_type_id from mrs_subject_type_det_active_vw
+				            WHERE
+                                mrs_subject_type_det_active_vw.ursi = p_ursi AND
+                                mrs_subject_type_det_active_vw.study_id = 2319
+			            )
+        );
+        WITH update_tracker_event AS (
+            UPDATE mrs_subject_tracker_events
+            SET
+                timestamp = p_timestamp
+            WHERE
+                mrs_subject_tracker_events.subject_type_detail_id = z_subject_type_detail_id AND
+                mrs_subject_tracker_events.log = 'imported'
+            RETURNING 'update'::text AS action, subject_type_detail_id, id
+        ),
+        insert_tracker_event AS (
+            INSERT INTO
+                mrs_subject_tracker_events (
+                    subject_type_detail_id,
+                    timestamp,
+                    log,
+                    tracking_diff
+                )
+            SELECT
+                z_subject_type_detail_id as subject_type_detail_id,
+                p_timestamp as timestamp,
+                'imported' as log,
+                p_tracking_diff as tracking_diff
+            WHERE NOT EXISTS (SELECT subject_type_detail_id FROM update_tracker_event LIMIT 1)
+            RETURNING 'insert'::text AS action, subject_type_detail_id, id
+        )
+        SELECT id INTO result_id FROM update_tracker_event UNION ALL SELECT id FROM insert_tracker_event;
+        RETURN result_id;
+    END;
+
 $$ LANGUAGE plpgsql;

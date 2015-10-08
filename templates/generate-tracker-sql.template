@@ -1,3 +1,38 @@
-{{> define-upsert-tracker}}
+{{> define-upsert-tracker opts=opts}}
 
-{{> upsert-trackers trackers trackers=trackers opts=opts}}
+--DROP FUNCTION add_all_tracker_data();
+CREATE OR REPLACE FUNCTION add_all_tracker_data() RETURNS boolean AS $$
+
+    {{# each trackers}}
+    DECLARE tracker_id_{{name}} integer;
+    {{/each}}
+
+    {{# each events}}
+    DECLARE event_id_{{@index}} integer;
+    {{/each}}
+
+
+    BEGIN
+
+        -- upsert trackers
+        {{# each trackers}}
+        tracker_id_{{name}} = upsert_tracker({{../opts.study}}, '{{name}}', 't');
+        {{/each}}
+
+        -- upsert events, then finally insert trackers (could be upserted :))
+        {{# each events}}
+        event_id_{{@index}} = upsert_tracker_event('{{ursi}}', now(), 'import', null);
+
+        {{# each responses}}
+        INSERT INTO mrs_subject_tracker_responses
+            (event_id, tracker_id, tracker_response_option_id, custom_text_response)
+            VALUES (event_id_{{@../index}}, tracker_id_{{tracker.name}}, null, '{{value}}');
+        {{/each}}
+
+        {{/each}}
+
+        RETURN 't';
+    END;
+$$ LANGUAGE plpgsql;
+
+SELECT add_all_tracker_data();
