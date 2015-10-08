@@ -1,0 +1,23 @@
+{
+  "name": "coins-tracker-import",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bluebirdify": "^1.0.2",
+    "csv-parse": "^1.0.0",
+    "handlebars": "^4.0.3",
+    "lodash.takeright": "^3.0.0",
+    "lodash.toarray": "^3.0.2",
+    "lodash.uniq": "^3.2.2",
+    "lodash.without": "^3.2.1",
+    "nomnom": "^1.8.1",
+    "npm": "^3.3.5",
+    "sylvester": "0.0.21"
+  }
+}

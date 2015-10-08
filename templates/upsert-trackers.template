@@ -1,0 +1,3 @@
+{{# each trackers}}
+    upsert_tracker({{../opts.study}}, $$${{name}}$$$, 't');
+{{/each}}

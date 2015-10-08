@@ -1,0 +1,27 @@
+DROP FUNCTION upsert_tracker(integer,character varying,boolean);
+CREATE OR REPLACE FUNCTION upsert_tracker(p_study_id integer, p_label varchar, p_permit_custom_text_response boolean) RETURNS integer AS $$
+    DECLARE result_id integer;
+    BEGIN
+        WITH update_tracker AS (
+            UPDATE mrs_study_trackers
+            SET
+                study_id = p_study_id,
+                label =  p_label,
+                permit_custom_text_response = p_permit_custom_text_response
+            WHERE mrs_study_trackers.label = p_label
+            RETURNING 'update'::text AS action, label, id
+        ),
+        insert_tracker AS (
+            INSERT INTO
+                mrs_study_trackers (study_id, label, permit_custom_text_response)
+            SELECT
+                p_study_id AS study_id,
+                p_label AS label,
+                p_permit_custom_text_response AS permit_custom_text_response
+            WHERE NOT EXISTS (SELECT label FROM update_tracker LIMIT 1)
+            RETURNING 'insert'::text AS action, label, id
+        )
+        SELECT id INTO result_id FROM update_tracker UNION ALL SELECT id FROM insert_tracker;
+        RETURN result_id;
+    END;
+$$ LANGUAGE plpgsql;
