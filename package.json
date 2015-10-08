@@ -12,6 +12,10 @@
   "bin": {
     "coins-tracker-importer": "bin.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MRN-Code/coins-tracker-importer.git"
+  },
   "author": "cdaringe",
   "license": "ISC",
   "dependencies": {
