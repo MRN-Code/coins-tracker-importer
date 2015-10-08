@@ -1,18 +1,9 @@
 var path = require('path');
 module.exports = function go(opts, config) {
-    if (opts._[0] && opts._[0].trim().match(/\.csv$/)) {
-        var filename = opts._[0];
-        var pParsed = require('./utils/parse.js')(path.resolve(__dirname, opts._[0]));
-        return pParsed.then(function(parsedCsv) {
-            return require('./utils/generate-tracker-sql.js')(parsedCsv, opts, config);
-        })
-        .catch(function(err) {
-            if (!err) {
-                throw new Error('unknown error occurred');
-            }
-            throw err;
-        });
-    }
+    var pParsed = require('./utils/parse.js')(path.resolve(__dirname, opts.filename));
+    return pParsed.then(function(parsedCsv) {
+        return require('./utils/generate-tracker-sql.js')(parsedCsv, opts, config);
+    });
 };
 
 // parse workbook

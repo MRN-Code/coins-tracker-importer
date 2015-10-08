@@ -1,12 +1,15 @@
 {
-  "name": "coins-tracker-import",
+  "name": "coins-tracker-importer",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "bin": {
+    "coins-tracker-importer": "bin.js"
+  },
+  "author": "cdaringe",
   "license": "ISC",
   "dependencies": {
     "bluebirdify": "^1.0.2",
