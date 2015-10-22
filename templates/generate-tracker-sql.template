@@ -4,7 +4,7 @@
 CREATE OR REPLACE FUNCTION add_all_tracker_data() RETURNS boolean AS $$
 
     {{# each trackers}}
-    DECLARE tracker_id_{{name}} integer;
+    DECLARE tracker_id_{{label}} integer;
     {{/each}}
 
     {{# each events}}
@@ -15,18 +15,28 @@ CREATE OR REPLACE FUNCTION add_all_tracker_data() RETURNS boolean AS $$
     BEGIN
 
         -- upsert trackers
-        {{# each trackers}}
-        tracker_id_{{name}} = upsert_tracker({{../opts.study}}, '{{name}}', 't');
+        {{#each trackers}}
+            {{# if existing}}
+        tracker_id_{{label}} = {{existing.id}};
+            {{else}}
+        tracker_id_{{label}} = upsert_tracker({{../study}}, '{{label}}', 't');
+            {{/if}}
         {{/each}}
 
         -- upsert events, then finally insert trackers (could be upserted :))
         {{# each events}}
-        event_id_{{@index}} = upsert_tracker_event('{{ursi}}', now(), 'import', null);
-
+        event_id_{{@index}} = upsert_tracker_event({{../study}}, '{{ursi}}', now(), 'import', null);
         {{# each responses}}
+
+            {{#if existing}}
         INSERT INTO mrs_subject_tracker_responses
             (event_id, tracker_id, tracker_response_option_id, custom_text_response)
-            VALUES (event_id_{{@../index}}, tracker_id_{{tracker.name}}, null, '{{value}}');
+            VALUES (event_id_{{@../index}}, tracker_id_{{tracker.label}}, {{existing.id}}, null);
+            {{else}}
+        INSERT INTO mrs_subject_tracker_responses
+            (event_id, tracker_id, tracker_response_option_id, custom_text_response)
+            VALUES (event_id_{{@../index}}, tracker_id_{{tracker.label}}, null, '{{value}}');
+            {{/if}}
         {{/each}}
 
         {{/each}}

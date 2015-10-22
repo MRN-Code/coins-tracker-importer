@@ -27,8 +27,10 @@ CREATE OR REPLACE FUNCTION upsert_tracker(p_study_id integer, p_label varchar, p
 $$ LANGUAGE plpgsql;
 
 -- integer, timestamp with time zone, character varying, character varying
+-- @TODO just create a new event everytime. we are already doing so using the 0 hack
 --DROP FUNCTION upsert_tracker_event(character varying, timestamp with time zone, character varying);
 CREATE OR REPLACE FUNCTION upsert_tracker_event(
+    p_study_id integer,
     p_ursi character varying,
     p_timestamp timestamp with time zone,
     p_log character varying,
@@ -42,21 +44,21 @@ CREATE OR REPLACE FUNCTION upsert_tracker_event(
     BEGIN
         z_subject_type_detail_id = (
             SELECT DISTINCT subject_type_detail_id FROM mrs_subject_type_details
-                WHERE
-                    mrs_subject_type_details.ursi = p_ursi AND
-                    mrs_subject_type_details.subject_type_id = (
-			            SELECT DISTINCT subject_type_id from mrs_subject_type_det_active_vw
-				            WHERE
-                                mrs_subject_type_det_active_vw.ursi = p_ursi AND
-                                mrs_subject_type_det_active_vw.study_id = 2319
-			            )
+            WHERE
+                mrs_subject_type_details.ursi = p_ursi AND
+                mrs_subject_type_details.subject_type_id = (
+		            SELECT DISTINCT subject_type_id from mrs_subject_type_det_active_vw
+			            WHERE
+                            mrs_subject_type_det_active_vw.ursi = p_ursi AND
+                            mrs_subject_type_det_active_vw.study_id = p_study_id
+		        )
         );
         WITH update_tracker_event AS (
             UPDATE mrs_subject_tracker_events
             SET
                 timestamp = p_timestamp
             WHERE
-                mrs_subject_tracker_events.subject_type_detail_id = z_subject_type_detail_id AND
+                mrs_subject_tracker_events.subject_type_detail_id = 0 AND
                 mrs_subject_tracker_events.log = 'imported'
             RETURNING 'update'::text AS action, subject_type_detail_id, id
         ),

@@ -1,7 +1,13 @@
 'use strict';
 var ready = require('./utils/boot.js')();
-var go = require('./go.js');
+var buildSQL = require('./lib/build-sql.js');
 
-ready.then(function(bootResults) {
-    return go(bootResults.cliOpts, bootResults.config);
+ready.then(function() {
+    return buildSQL().catch(function(err) {
+        console.error('fatal');
+        console.log(err);
+        throw err;
+    });
+}).then(function() {
+    process.exit();
 });

@@ -1,3 +1,0 @@
-{{# each trackers}}
-tracker_id_{{name}} = upsert_tracker({{../opts.study}}, '{{name}}', 't');
-{{/each}}

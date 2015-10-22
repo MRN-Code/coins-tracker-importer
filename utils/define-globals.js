@@ -1,9 +1,12 @@
 'use strict';
-var toArray = require('lodash.toarray');
+var _ = require('lodash');
+var bluebirdify = require('bluebirdify');
+bluebirdify();
+bluebirdify.chirp();
 
 module.exports = function() {
     global.log = function() {
-        toArray(arguments).forEach(function(v, n) {
+        _.toArray(arguments).forEach(function(v, n) {
             console.log(n + ':', v);
         });
     };
