@@ -32,10 +32,5 @@ M123,tracker_resp_1,tracker_resp_2,...,tracker_resp_n
   - `study` required, study id
   - `out` option, generate sql to file, else shows in STDOUT
 
-
-- empties are allowed for responses
-- empties not allowed for ursi
-- all responses are entered as 'custom text' responses, as pre-defined response option imports are not (yet?) supported
-
 # changelog
 - 2.0.0 - support existing data, map to existing trackers and pre-def response options
