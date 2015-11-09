@@ -26,6 +26,7 @@ CREATE OR REPLACE FUNCTION add_all_tracker_data() RETURNS boolean AS $$
         -- upsert events, then finally insert trackers (could be upserted :))
         {{# each events}}
         event_id_{{@index}} = upsert_tracker_event({{../study}}, '{{ursi}}', now(), 'import', null);
+        {{# if responses.length }}
         INSERT INTO mrs_subject_tracker_responses
             (event_id, tracker_id, tracker_response_option_id, custom_text_response)
             VALUES
@@ -37,8 +38,8 @@ CREATE OR REPLACE FUNCTION add_all_tracker_data() RETURNS boolean AS $$
             {{/if}}
         {{/each}}
 
+        {{/if}}
         {{/each}}
-
         RETURN 't';
     END;
 $$ LANGUAGE plpgsql;
